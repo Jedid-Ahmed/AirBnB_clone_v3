@@ -19,6 +19,7 @@ import os
 import pep8
 import unittest
 FileStorage = file_storage.FileStorage
+storage = FileStorage()
 classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
            "Place": Place, "Review": Review, "State": State, "User": User}
 
@@ -69,6 +70,16 @@ test_file_storage.py'])
 
 
 class TestFileStorage(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        """Set up MySQLdb"""
+        storage.reload()
+
+    @classmethod
+    def tearDown(self):
+        """Tear down storage"""
+        storage.close()
+
     """Test the FileStorage class"""
     @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
     def test_all_returns_dict(self):
@@ -116,15 +127,19 @@ class TestFileStorage(unittest.TestCase):
 
     @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
     def test_get(self):
-        """Test that get properly returns a requested object"""
-        storage = FileStorage()
-        user = User(name="User1")
-        user.save()
-        self.assertEqual(user, storage.get("User", user.id))
+        """ Test that get method works """
+        s = State(name='TEST')
+        storage.new(s)
+        storage.save()
+        found = storage.get("State", s.id)
+        self.assertTrue(found)
 
     @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
     def test_count(self):
-        """Test that count properly counts all objects"""
-        storage = FileStorage()
-        nobjs = len(storage._FileStorage__objects)
-        self.assertEqual(nobjs, storage.count())
+        """ Test that count method works """
+        count = storage.count()
+        s = State(name='TEST2')
+        storage.new(s)
+        storage.save()
+        new_count = storage.count()
+        self.assertNotEqual(count, new_count)
